@@ -1,8 +1,9 @@
 use std::rc::Rc;
-use std::collections::BTreeSet;
 use std::fmt::{Display, Formatter, Result};
 use std::result::Result as StdResult;
 use std::io;
+
+use vec_map::VecMap;
 
 use args::{AnyArg, ArgMatcher, Arg};
 use args::settings::{ArgFlags, ArgSettings};
@@ -30,7 +31,7 @@ pub struct OptBuilder<'n> {
     pub num_vals: Option<u8>,
     pub min_vals: Option<u8>,
     pub max_vals: Option<u8>,
-    pub val_names: Option<BTreeSet<&'n str>>,
+    pub val_names: Option<VecMap<&'n str>>,
     pub validator: Option<Rc<Fn(String) -> StdResult<(), String>>>,
     /// A list of names for other arguments that *mutually override* this flag
     pub overrides: Option<Vec<&'n str>>,
@@ -147,7 +148,7 @@ impl<'n> OptBuilder<'n> {
                         l));
         }
         if let Some(ref vec) = self.val_names {
-            for val in vec {
+            for (_, &val) in vec {
                 try!(write!(w, " <{}>", val));
             }
         } else if let Some(num) = self.num_vals {
@@ -230,7 +231,7 @@ impl<'n> Display for OptBuilder<'n> {
 
         // Write the values such as <name1> <name2>
         if let Some(ref vec) = self.val_names {
-            for n in vec.iter() {
+            for (_, &n) in vec.iter() {
                 try!(write!(f, " <{}>", n));
             }
         } else {
@@ -306,7 +307,7 @@ impl<'n> AnyArg<'n> for OptBuilder<'n> {
 #[cfg(test)]
 mod test {
     use super::OptBuilder;
-    use std::collections::BTreeSet;
+    use vec_map::VecMap;
     use args::settings::ArgSettings;
 
     #[test]
@@ -317,9 +318,9 @@ mod test {
 
         assert_eq!(&*format!("{}", o), "--option <opt>...");
 
-        let mut v_names = BTreeSet::new();
-        v_names.insert("file");
-        v_names.insert("name");
+        let mut v_names = VecMap::new();
+        v_names.insert(0, "file");
+        v_names.insert(1, "name");
 
         let mut o2 = OptBuilder::new("opt");
         o2.short = Some('o');
