@@ -1,13 +1,13 @@
 use std::iter::IntoIterator;
 #[cfg(feature = "yaml")]
 use std::collections::BTreeMap;
-use std::collections::BTreeSet;
 use std::rc::Rc;
 
 #[cfg(feature = "yaml")]
 use yaml_rust::Yaml;
+use vec_map::VecMap;
 
-use usageparser::{UsageParser, UsageToken};
+use usageparser::UsageArg;
 
 /// The abstract representation of a command line argument used by the consumer of the library.
 /// Used to set all the options and relationships that define a valid argument for the program.
@@ -78,7 +78,7 @@ pub struct Arg<'n, 'l, 'h, 'g, 'p, 'r> {
     /// A name of the group the argument belongs to
     pub group: Option<&'g str>,
     /// A set of names (ordered) for the values to be displayed with the help message
-    pub val_names: Option<BTreeSet<&'n str>>,
+    pub val_names: Option<VecMap<&'n str>>,
     /// The exact number of values to satisfy this argument
     pub num_vals: Option<u8>,
     /// The maximum number of values possible for this argument
@@ -261,111 +261,7 @@ impl<'n, 'l, 'h, 'g, 'p, 'r> Arg<'n, 'l, 'h, 'g, 'p, 'r> {
     /// ])
     /// # .get_matches();
     pub fn from_usage(u: &'n str) -> Arg<'n, 'n, 'n, 'g, 'p, 'r> {
-        assert!(u.len() > 0,
-                "Arg::from_usage() requires a non-zero-length usage string but none \
-            was provided");
-
-        let mut name = None;
-        let mut short = None;
-        let mut long = None;
-        let mut help = None;
-        let mut required = false;
-        let mut takes_value = false;
-        let mut multiple = false;
-        let mut num_names = 1;
-        let mut name_first = false;
-        let mut consec_names = false;
-        let mut val_names = BTreeSet::new();
-
-        let parser = UsageParser::with_usage(u);
-        for_match!{ parser,
-            UsageToken::Name(n, req) => {
-                if consec_names {
-                    num_names += 1;
-                }
-                let mut use_req = false;
-                let mut use_name = false;
-                if name.is_none() && long.is_none() && short.is_none() {
-                    name_first = true;
-                    use_name = true;
-                    use_req = true;
-                } else if let Some(l) = long {
-                    if l == name.unwrap_or("") {
-                        if !name_first {
-                            use_name = true;
-                            use_req = true;
-                        }
-                    }
-                } else {
-        // starting with short
-                    if !name_first {
-                        use_name = true;
-                        use_req = true;
-                    }
-                }
-                if use_name && !consec_names {
-                    name = Some(n);
-                }
-                if use_req && !consec_names {
-                    if let Some(r) = req {
-                        required = r;
-                    }
-                }
-                if short.is_some() || long.is_some() {
-                    val_names.insert(n);
-                    takes_value = true;
-                }
-                consec_names = true;
-            },
-            UsageToken::Short(s)     => {
-                consec_names = false;
-                short = Some(s);
-            },
-            UsageToken::Long(l)      => {
-                consec_names = false;
-                long = Some(l);
-                if name.is_none() {
-                    name = Some(l);
-                }
-            },
-            UsageToken::Help(h)      => {
-                help = Some(h);
-            },
-            UsageToken::Multiple     => {
-                multiple = true;
-            }
-        }
-
-        if let Some(l) = long {
-            val_names.remove(l);
-            if (val_names.len() > 1) && (name.unwrap() != l && !name_first) {
-                name = Some(l);
-            }
-        }
-
-        Arg {
-            name: name.unwrap_or_else(|| {
-                panic!("Missing flag name in \"{}\", check from_usage call", u)
-            }),
-            short: short,
-            long: long,
-            help: help,
-            required: required,
-            takes_value: takes_value,
-            multiple: multiple,
-            empty_vals: true,
-            num_vals: if num_names > 1 {
-                Some(num_names)
-            } else {
-                None
-            },
-            val_names: if val_names.len() > 1 {
-                Some(val_names)
-            } else {
-                None
-            },
-            ..Default::default()
-        }
+        UsageArg::from_usage(u).parse()
     }
 
     /// Sets the short version of the argument without the preceding `-`.
@@ -954,12 +850,18 @@ impl<'n, 'l, 'h, 'g, 'p, 'r> Arg<'n, 'l, 'h, 'g, 'p, 'r> {
         where T: AsRef<str> + 'n,
               I: IntoIterator<Item = &'n T>
     {
-        if let Some(ref mut vec) = self.val_names {
-            for s in names {
-                vec.insert(s.as_ref());
+        let save_vals = |mut c: usize, vec: &mut VecMap<&'n str>| {
+            for s in names.into_iter() {
+                vec.insert(c, s.as_ref());
+                c += 1;
             }
+        };
+
+        if let Some(ref mut vec) = self.val_names {
+            save_vals(vec.len(), vec);
         } else {
-            self.val_names = Some(names.into_iter().map(|s| s.as_ref()).collect::<BTreeSet<_>>());
+            self.val_names = Some(VecMap::new());
+            save_vals(0, self.val_names.as_mut().unwrap());
         }
         self
     }
@@ -979,18 +881,18 @@ impl<'n, 'l, 'h, 'g, 'p, 'r> Arg<'n, 'l, 'h, 'g, 'p, 'r> {
     /// # ).get_matches();
     pub fn value_name(mut self, name: &'n str) -> Self {
         if let Some(ref mut vec) = self.val_names {
-            vec.insert(name);
+            let len = vec.len();
+            vec.insert(len, name);
         } else {
-            let mut bts = BTreeSet::new();
-            bts.insert(name);
-            self.val_names = Some(bts);
+            let mut vec = VecMap::new();
+            vec.insert(0, name);
+            self.val_names = Some(vec);
         }
         self
     }
 }
 
-impl<'n, 'l, 'h, 'g, 'p, 'r, 'z> From<&'z Arg<'n, 'l, 'h, 'g, 'p, 'r>>
-    for Arg<'n, 'l, 'h, 'g, 'p, 'r> {
+impl<'n, 'l, 'h, 'g, 'p, 'r, 'z> From<&'z Arg<'n, 'l, 'h, 'g, 'p, 'r>> for Arg<'n, 'l, 'h, 'g, 'p, 'r> {
     fn from(a: &'z Arg<'n, 'l, 'h, 'g, 'p, 'r>) -> Self {
         Arg {
             name: a.name,

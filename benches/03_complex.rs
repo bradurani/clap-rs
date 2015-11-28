@@ -29,8 +29,8 @@ macro_rules! create_app {
                           Arg::from_usage("[positional2] 'tests positionals with exclusions'"),
                           Arg::from_usage("-O --Option [option3] 'tests options with specific value sets'").possible_values(&OPT3_VALS),
                           Arg::from_usage("[positional3]... 'tests positionals with specific values'").possible_values(&POS3_VALS),
-                          Arg::from_usage("--multvals [multvals] 'Tests mutliple values, not mult occs'").value_names(&M_VAL_NAMES),
-                          Arg::from_usage("--multvalsmo [multvalsmo]... 'Tests mutliple values, not mult occs'").value_names(&M_VAL_NAMES),
+                          Arg::from_usage("--multvals [one] [two] 'Tests mutliple values, not mult occs'"),
+                          Arg::from_usage("--multvalsmo... [one] [two] 'Tests mutliple values, not mult occs'"),
                           Arg::from_usage("--minvals2 [minvals]... 'Tests 2 min vals'").min_values(2),
                           Arg::from_usage("--maxvals3 [maxvals]... 'Tests 3 max vals'").max_values(3)
                     ])
