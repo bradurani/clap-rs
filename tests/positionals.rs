@@ -82,3 +82,61 @@ fn positional_possible_values() {
     assert!(m.is_present("flag"));
     assert_eq!(m.values_of("positional").unwrap(), vec!["test123"]);
 }
+
+#[test]
+fn create_positional() {
+    let _ = App::new("test")
+                .arg(Arg::with_name("test")
+                            .index(1)
+                            .help("testing testing"))
+                .get_matches();
+}
+
+#[test]
+fn create_positional_usage() {
+    let a = Arg::from_usage("[pos] 'some help info'");
+    assert_eq!(a.name, "pos");
+    assert_eq!(a.help.unwrap(), "some help info");
+    assert!(!a.multiple);
+    assert!(!a.required);
+    assert!(a.val_names.is_none());
+    assert!(a.num_vals.is_none());
+
+    let b = Arg::from_usage("<pos> 'some help info'");
+    assert_eq!(b.name, "pos");
+    assert_eq!(b.help.unwrap(), "some help info");
+    assert!(!b.multiple);
+    assert!(b.required);
+    assert!(b.val_names.is_none());
+    assert!(b.num_vals.is_none());
+
+    let c = Arg::from_usage("[pos]... 'some help info'");
+    assert_eq!(c.name, "pos");
+    assert_eq!(c.help.unwrap(), "some help info");
+    assert!(c.multiple);
+    assert!(!c.required);
+    assert!(c.val_names.is_none());
+    assert!(c.num_vals.is_none());
+
+    let d = Arg::from_usage("<pos>... 'some help info'");
+    assert_eq!(d.name, "pos");
+    assert_eq!(d.help.unwrap(), "some help info");
+    assert!(d.multiple);
+    assert!(d.required);
+    assert!(d.val_names.is_none());
+    assert!(d.num_vals.is_none());
+
+    let b = Arg::from_usage("<pos>");
+    assert_eq!(b.name, "pos");
+    assert!(!b.multiple);
+    assert!(b.required);
+    assert!(b.val_names.is_none());
+    assert!(b.num_vals.is_none());
+
+    let c = Arg::from_usage("[pos]...");
+    assert_eq!(c.name, "pos");
+    assert!(c.multiple);
+    assert!(!c.required);
+    assert!(c.val_names.is_none());
+    assert!(c.num_vals.is_none());
+}
