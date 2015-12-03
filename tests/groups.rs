@@ -1,6 +1,6 @@
 extern crate clap;
 
-use clap::{App, ArgGroup, ClapErrorType};
+use clap::{App, Arg, ArgGroup, ClapErrorType};
 
 #[test]
 fn required_group_missing_arg() {
@@ -76,4 +76,36 @@ fn group_multi_value_single_arg() {
         .get_matches_from(vec!["", "-c", "blue", "red", "green"]);
     assert!(m.is_present("grp"));
     assert_eq!(m.values_of("grp").unwrap(), &["blue", "red", "green"]);
+}
+
+#[test]
+#[should_panic]
+fn empty_group() {
+    let _ = App::new("empty_group")
+        .arg(Arg::from_usage("-f, --flag 'some flag'"))
+        .arg_group(ArgGroup::with_name("vers")
+            .required(true))
+        .get_matches();
+}
+
+#[test]
+#[should_panic]
+fn empty_group_2() {
+    let _ = App::new("empty_group")
+        .arg(Arg::from_usage("-f, --flag 'some flag'"))
+        .arg_group(ArgGroup::with_name("vers")
+            .required(true)
+            .add_all(&["ver", "major"]))
+        .get_matches();
+}
+
+#[test]
+#[should_panic]
+fn errous_group() {
+    let _ = App::new("errous_group")
+        .arg(Arg::from_usage("-f, --flag 'some flag'"))
+        .arg_group(ArgGroup::with_name("vers")
+            .add("vers")
+            .required(true))
+        .get_matches();
 }
