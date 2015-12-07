@@ -186,4 +186,26 @@ fn create_flag_usage() {
     assert!(e.multiple);
     assert!(e.val_names.is_none());
     assert!(e.num_vals.is_none());
+
+    let a = Arg::from_usage("-f 'some help info'");
+    assert_eq!(a.name, "f");
+    assert_eq!(a.short.unwrap(), 'f');
+    assert!(a.long.is_none());
+    assert_eq!(a.help.unwrap(), "some help info");
+    assert!(!a.multiple);
+    assert!(a.val_names.is_none());
+    assert!(a.num_vals.is_none());
+
+    let e = Arg::from_usage("-f");
+    assert_eq!(e.name, "f");
+    assert_eq!(e.short.unwrap(), 'f');
+    assert!(e.val_names.is_none());
+    assert!(e.num_vals.is_none());
+
+    let e = Arg::from_usage("-f...");
+    assert_eq!(e.name, "f");
+    assert_eq!(e.short.unwrap(), 'f');
+    assert!(e.multiple);
+    assert!(e.val_names.is_none());
+    assert!(e.num_vals.is_none());
 }

@@ -10,10 +10,10 @@ fn opts_using_short() {
             Arg::from_usage("-c [color] 'some other flag'")
             ])
         .get_matches_from(vec!["", "-f", "some", "-c", "other"]);
-    assert!(m.is_present("flag"));
-    assert_eq!(m.value_of("flag").unwrap(), "some");
-    assert!(m.is_present("color"));
-    assert_eq!(m.value_of("color").unwrap(), "other");
+    assert!(m.is_present("f"));
+    assert_eq!(m.value_of("f").unwrap(), "some");
+    assert!(m.is_present("c"));
+    assert_eq!(m.value_of("c").unwrap(), "other");
 }
 
 #[test]
@@ -95,7 +95,7 @@ fn create_option_usage() {
     assert!(a.num_vals.is_none());
 
     let b = Arg::from_usage("-o [opt] 'some help info'");
-    assert_eq!(b.name, "opt");
+    assert_eq!(b.name, "o");
     assert_eq!(b.short.unwrap(), 'o');
     assert!(b.long.is_none());
     assert_eq!(b.help.unwrap(), "some help info");
@@ -117,7 +117,7 @@ fn create_option_usage() {
     assert!(c.num_vals.is_none());
 
     let d = Arg::from_usage("-o <opt> 'some help info'");
-    assert_eq!(d.name, "opt");
+    assert_eq!(d.name, "o");
     assert_eq!(d.short.unwrap(), 'o');
     assert!(d.long.is_none());
     assert_eq!(d.help.unwrap(), "some help info");
@@ -150,7 +150,7 @@ fn create_option_usage() {
     assert!(a.num_vals.is_none());
 
     let b = Arg::from_usage("-o [opt]... 'some help info'");
-    assert_eq!(b.name, "opt");
+    assert_eq!(b.name, "o");
     assert_eq!(b.short.unwrap(), 'o');
     assert!(b.long.is_none());
     assert_eq!(b.help.unwrap(), "some help info");
@@ -183,7 +183,7 @@ fn create_option_usage() {
     assert!(c.num_vals.is_none());
 
     let d = Arg::from_usage("-o <opt>... 'some help info'");
-    assert_eq!(d.name, "opt");
+    assert_eq!(d.name, "o");
     assert_eq!(d.short.unwrap(), 'o');
     assert!(d.long.is_none());
     assert_eq!(d.help.unwrap(), "some help info");

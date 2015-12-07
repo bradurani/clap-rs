@@ -41,13 +41,13 @@ fn option_required() {
 fn option_required_2() {
     let m = App::new("option_required")
         .arg(Arg::from_usage("-f [flag] 'some flag'")
-            .requires("color"))
+            .requires("c"))
         .arg(Arg::from_usage("-c [color] 'third flag'"))
         .get_matches_from(vec!["", "-f", "val", "-c", "other_val"]);
-    assert!(m.is_present("color"));
-    assert_eq!(m.value_of("color").unwrap(), "other_val");
-    assert!(m.is_present("flag"));
-    assert_eq!(m.value_of("flag").unwrap(), "val");
+    assert!(m.is_present("c"));
+    assert_eq!(m.value_of("c").unwrap(), "other_val");
+    assert!(m.is_present("f"));
+    assert_eq!(m.value_of("f").unwrap(), "val");
 }
 
 #[test]
