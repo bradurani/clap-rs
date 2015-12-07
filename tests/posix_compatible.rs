@@ -77,20 +77,20 @@ fn posix_compatible_opts_long_equals() {
 #[test]
 fn posix_compatible_opts_short() {
     let m = App::new("posix")
-                .arg(Arg::from_usage("-f [flag]  'some flag'").mutually_overrides_with("color"))
+                .arg(Arg::from_usage("-f [flag]  'some flag'").mutually_overrides_with("c"))
                 .arg(Arg::from_usage("-c [color] 'some other flag'"))
                 .get_matches_from(vec!["", "-f", "some", "-c", "other"]);
-    assert!(m.is_present("color"));
-    assert_eq!(m.value_of("color").unwrap(), "other");
-    assert!(!m.is_present("flag"));
+    assert!(m.is_present("c"));
+    assert_eq!(m.value_of("c").unwrap(), "other");
+    assert!(!m.is_present("f"));
 
     let m = App::new("posix")
-                .arg(Arg::from_usage("-f [flag]  'some flag'").mutually_overrides_with("color"))
+                .arg(Arg::from_usage("-f [flag]  'some flag'").mutually_overrides_with("c"))
                 .arg(Arg::from_usage("-c [color] 'some other flag'"))
                 .get_matches_from(vec!["", "-c", "some", "-f", "other"]);
-    assert!(!m.is_present("color"));
-    assert!(m.is_present("flag"));
-    assert_eq!(m.value_of("flag").unwrap(), "other");
+    assert!(!m.is_present("c"));
+    assert!(m.is_present("f"));
+    assert_eq!(m.value_of("f").unwrap(), "other");
 }
 
 #[test]
